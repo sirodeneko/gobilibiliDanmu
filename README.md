@@ -1,15 +1,11 @@
 # gobilibiliDanmu
 ![](https://ws1.sinaimg.cn/large/521c75dcly1fo040yjlaij20g90a6myb.jpg)
 
-B 站直播弹幕 Go 版。
+B 站直播弹幕 Go 版。[油猴脚本版点这](https://github.com/sirodeneko/jsbilibiliDanmu)  
 借鉴于[lyyyuna大佬的项目](https://github.com/lyyyuna/gobilibili) 基础上作了以下修改:
 
-* 自动获取直播间真实ID,兼容短ID
-* 增加赠送礼物/进入房间在线人数变动消息处理
-* 增加方便的消息事件订阅机制，用于将自己的处理器注册到消息处理链
-* 原处理逻辑现在被包装为一个处理器，名为DefaultHandler
-* 增加了一些函数，用于事件触发时快速获取消息结构(徽章，等级，礼物信息，类型，数量，标志等等)
-* 为大部分函数添加了错误处理
+* 增加一些注释。。。
+* 部分无关紧要的修改
 
 ## 安装
 ```
