@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"gobilibili"
+	"github.com/sirodeneko/gobilibiliDanmu"
 )
 
 func main() {
