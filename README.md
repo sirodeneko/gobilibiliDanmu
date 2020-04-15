@@ -1,4 +1,4 @@
-# gobilibili
+# gobilibiliDanmu
 ![](https://ws1.sinaimg.cn/large/521c75dcly1fo040yjlaij20g90a6myb.jpg)
 
 B 站直播弹幕 Go 版。
@@ -27,6 +27,7 @@ import "github.com/lyyyuna/gobilibili"
 func main() {
 	bili := gobilibili.NewBiliBiliClient()
 	bili.RegHandleFunc(gobilibili.CmdAll, gobilibili.DefaultHandler)
+	// 传入房间号
 	bili.ConnectServer(102)
 }
 ```
