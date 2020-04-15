@@ -9,7 +9,7 @@ B 站直播弹幕 Go 版。[油猴脚本版点这](https://github.com/sirodeneko
 
 ## 安装
 ```
-go get github.com/lyyyuna/gobilibili
+go get github.com/sirodeneko/gobilibiliDanmu
 ``` 
 ## 示例
 
@@ -18,7 +18,7 @@ go get github.com/lyyyuna/gobilibili
 ```
 package main
 
-import "github.com/lyyyuna/gobilibili"
+import "github.com/sirodeneko/gobilibiliDanmu"
 
 func main() {
 	bili := gobilibili.NewBiliBiliClient()
@@ -102,7 +102,7 @@ Handler和HandleFunc的返回值用于控制调用链是否继续向下执行。
 ```
 package main
 
-import "github.com/lyyyuna/gobilibili"
+import "github.com/sirodeneko/gobilibiliDanmu"
 
 func main() {
 	bili := gobilibili.NewBiliBiliClient()
