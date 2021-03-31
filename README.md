@@ -1,11 +1,6 @@
 # gobilibiliDanmu
-![](https://ws1.sinaimg.cn/large/521c75dcly1fo040yjlaij20g90a6myb.jpg)
 
 B 站直播弹幕 Go 版。[油猴脚本版点这](https://github.com/sirodeneko/jsbilibiliDanmu)  
-借鉴于[lyyyuna大佬的项目](https://github.com/lyyyuna/gobilibili) 基础上作了以下修改:
-
-* 增加一些注释。。。
-* 部分无关紧要的修改
 
 ## 安装
 ```
