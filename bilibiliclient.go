@@ -2,6 +2,7 @@ package gobilibili
 
 import (
 	"bytes"
+	"compress/zlib"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -83,9 +84,9 @@ func getRealRoomID(rid int) (realID int, err error) {
 	}
 	defer resp.Body.Close()
 	var res roomInitResult
-	// 对 r 进行读取， 直到发生错误或者遇到 EOF 为止， 
-	// 然后返回被读取的数据。 一次成功的读取将返回 nil 而不是 EOF 作为 err 的值： 
-	// 这是因为 ReadAll 的定义就是要读取 r 直到遇到 EOF 为止， 
+	// 对 r 进行读取， 直到发生错误或者遇到 EOF 为止，
+	// 然后返回被读取的数据。 一次成功的读取将返回 nil 而不是 EOF 作为 err 的值：
+	// 这是因为 ReadAll 的定义就是要读取 r 直到遇到 EOF 为止，
 	// 所以它不会把读取到的 EOF 当做错误， 也不会向调用者返回它。
 	jbytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -219,11 +220,20 @@ func (bili *BiliBiliClient) receiveMessageLoop() (err error) {
 		buf := make([]byte, 4)
 		// 错误处理
 		// 以下4句是将数据包的头信息读取出来
+		// 包长度
 		CatchAny(io.ReadAtLeast(bili.serverConn, buf, 4)) //将输入流读入buf中
 		expr := binary.BigEndian.Uint32(buf)
-		CatchAny(io.ReadAtLeast(bili.serverConn, buf, 4))
+		// 包头部长度（固定16）
+		buf = make([]byte, 2)
+		CatchAny(io.ReadAtLeast(bili.serverConn, buf, 2))
+		// 包协议版本
+		CatchAny(io.ReadAtLeast(bili.serverConn, buf, 2))
+		dataV := binary.BigEndian.Uint16(buf)
+		// 包类型
+		buf = make([]byte, 4)
 		CatchAny(io.ReadAtLeast(bili.serverConn, buf, 4))
 		num := binary.BigEndian.Uint32(buf)
+		// 不明固定值
 		CatchAny(io.ReadAtLeast(bili.serverConn, buf, 4))
 
 		bLen := int(expr - 16)
@@ -232,7 +242,7 @@ func (bili *BiliBiliClient) receiveMessageLoop() (err error) {
 		}
 		num = num - 1
 		switch num {
-		case 0, 1, 2:  //获取在线人数
+		case 0, 1, 2: //获取在线人数
 			buf = make([]byte, 4)
 			CatchAny(io.ReadAtLeast(bili.serverConn, buf, 4))
 			num3 := binary.BigEndian.Uint32(buf)
@@ -246,8 +256,31 @@ func (bili *BiliBiliClient) receiveMessageLoop() (err error) {
 		case 3, 4:
 			buf = make([]byte, bLen)
 			CatchAny(io.ReadAtLeast(bili.serverConn, buf, bLen))
-			messages := string(buf)
-			CatchAny(bili.parseDanMu(messages))
+
+			// 如果是通过zlib压缩后的JSON格式数据
+			if dataV == 2 {
+				// 对数据进行zlib解压缩
+				buf, err = DoZlibUnCompress(buf)
+
+				if err != nil {
+					return err
+				}
+				newBLen := len(buf)
+				// 循环读取多个数据包
+				offset := 0
+				for offset < newBLen {
+					bufLen := int(buf[offset+2])*256 + int(buf[offset+3]) // 因为默认会将256解释为uint8，其无法表示256，故转为int
+					//bufNum:=buf[]
+					messages := string(buf[offset+16 : offset+bufLen])
+					CatchAny(bili.parseDanMu(messages))
+
+					offset = offset + bufLen
+				}
+			} else {
+				messages := string(buf)
+				CatchAny(bili.parseDanMu(messages))
+			}
+
 		case 5, 6, 7:
 			buf = make([]byte, bLen)
 			CatchAny(io.ReadAtLeast(bili.serverConn, buf, bLen))
@@ -286,4 +319,22 @@ func (bili *BiliBiliClient) callCmdHandlerChain(cmd CmdType, c *Context) {
 			break
 		}
 	}
+}
+
+//进行zlib压缩
+func DoZlibCompress(src []byte) []byte {
+	var in bytes.Buffer
+	w := zlib.NewWriter(&in)
+	w.Write(src)
+	w.Close()
+	return in.Bytes()
+}
+
+//进行zlib解压缩
+func DoZlibUnCompress(compressSrc []byte) ([]byte, error) {
+	b := bytes.NewReader(compressSrc)
+	var out bytes.Buffer
+	r, err := zlib.NewReader(b)
+	io.Copy(&out, r)
+	return out.Bytes(), err
 }
